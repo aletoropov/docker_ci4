@@ -1,0 +1,42 @@
+version: '3.2'
+
+services:
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./:/var/www
+      - ./_docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "8001:80"
+    container_name: citest_nginx
+
+  app:
+    build:
+      context: .
+      dockerfile: _docker/app/Dockerfile
+    volumes:
+      - ./:/var/www
+    container_name: citest_app
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: test
+      DB_USERNAME: test-user
+      DB_PASSWORD: root
+    ports:
+      - "9001:9000"
+    working_dir: /var/www
+
+  db:
+    image: mysql:8.0.35
+    container_name: citest_db
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_USER: test-user
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3301:3306"
+    depends_on:
+      - nginx
